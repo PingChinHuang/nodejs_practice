@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const Canvas = require('canvas');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -9,6 +11,21 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => {
 	//res.send('Hello World, '  + req.url);
 	res.render('index', {title: 'Login', action: '/login'});
+})
+
+
+app.get('/image', (req, res) => {
+	fs.readFile(__dirname + '/public/image/CWT44201.jpg', (err, data) => {
+		if (err) throw err;
+		var img = new Canvas.Image;
+		img.src = data;
+
+		var canvas = new Canvas(img.width, img.height);
+		var ctx = canvas.getContext('2d');
+		ctx.drawImage(img, 0, 0, img.width, img.height);
+	
+		res.render('image', {title: 'Test Image', image_url: canvas.toDataURL()});
+	})
 })
 
 app.post('/login', (req, res) => {
