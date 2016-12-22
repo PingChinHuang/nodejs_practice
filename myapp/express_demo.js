@@ -3,6 +3,8 @@ const app = express();
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const Canvas = require('canvas');
+const mime = require('mime');
+const path = require('path');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -25,6 +27,44 @@ app.get('/image', (req, res) => {
 		ctx.drawImage(img, 0, 0, img.width, img.height);
 	
 		res.render('image', {title: 'Test Image', image_url: canvas.toDataURL()});
+	})
+})
+
+app.get('/download', (req, res) => {
+	res.render('download', {title: 'Download Image',
+		image_url: 'http://127.0.0.1:8081/public/image/CWT44201'});
+})
+
+app.get('/public/image/*', (req, res) => {
+	var filepath = '.' + req.url + '.jpg';
+	var filename = path.basename(filepath);
+	var mimetype = mime.lookup(filepath);
+
+	// Use file stream
+	/*fs.stat(filepath, (err, stats) => {
+		console.log(stats.size);
+		res.writeHeader(200, 
+			{'Content-disposition' : 'attachment; filename=' + filename,
+				'Content-type' : mimetype,
+				'Content-Length' : stats.size 
+			});
+	});
+
+	console.log(mimetype);
+
+	var file = fs.createReadStream(filepath);
+	file.pipe(res);
+	file.on('finish', (err, data) => {
+		file.close();
+	})
+	file.on('error', (err) => {
+		console.log(err);
+	})*/
+
+	// express API
+	res.download(filepath, filename, err => {
+		if (err) console.log(err);
+
 	})
 })
 
