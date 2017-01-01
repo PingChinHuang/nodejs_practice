@@ -5,6 +5,8 @@ const fs = require('fs');
 const Canvas = require('canvas');
 const mime = require('mime');
 const path = require('path');
+//const socket_io = require('socket.io');
+const http = require('http');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -144,10 +146,31 @@ app.use('/gallery', require('node-gallery')({
 	return res.send(req.html);
 });
 
+app.use('/socketio', (req, res) => {
+	res.render('socketio', {
+		title: 'socketio' 
+	}) 
+});
 
-var server = app.listen(8081, () => {
+
+var server = http.createServer(app);
+var io = require('socket.io')(server);
+	
+server.listen(8081, () => {
 	var host = server.address().adress;
 	var port = server.address().port;
 
 	console.log('http://%s:%s', host, port);
-})
+});
+
+io.on('connection', client => {
+	console.log('Connection established.');
+	client.on('test', data => {
+		console.log(data);
+		io.emit('test_resp', '12345678');
+	});
+
+	client.on('disconnect', () => {
+		console.log('Client disconnected.');
+	});
+});

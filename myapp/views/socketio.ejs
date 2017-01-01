@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title><%= title %></title>
+</head>
+<body>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script>
+	var socket = io();
+	$(document).ready(()=> {
+			console.log('test');
+			var name = prompt('Nickname:', 'guest');
+			if (name == '' || name == null) {
+				name = 'guest';
+			}
+
+			socket.emit('test', name);
+			socket.on('test_resp', data => {
+				confirm('server response:' + data);
+				console.log(data);
+			});
+
+			$('#send').click(() => {
+				console.log("button clicked!");
+				var text = $('#m').val();
+				console.log('you input' + text);
+				socket.emit('test', text);
+				$('#m').val('');
+				return false;
+			});
+
+			$('#m').keydown(event => {
+				if (event.which == 13) {
+					$('#send').click();
+				}
+			})
+	})
+</script>
+	<input id="m" autocomplete="off"/>
+	<button id="send">Send</button>
+</body>
+</html>
