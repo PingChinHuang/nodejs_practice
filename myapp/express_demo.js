@@ -30,6 +30,59 @@ app.get('/image', (req, res) => {
 	})
 })
 
+app.get('/video', (req, res) => {
+	//fs.readFile(__dirname + '/public/video/test.webm', (err, data) => {
+		//if (err) throw err;
+		//var img = new Canvas.Image;
+		//img.src = data;
+
+		//var canvas = new Canvas(1280, 720);
+		//var ctx = canvas.getContext('2d');
+		//ctx.drawVideo(img, 0, 0, img.width, img.height);
+		res.render('video', {title: 'Test Video', 
+								mp4_video_url: '/public/video/test.mp4',
+								webm_video_url: '/public/video/test.webm'});
+	//}
+})
+
+app.get('/public/video/test.*', (req, res) => {
+	var file = __dirname + req.url;
+	fs.stat(file, (err, stats) => {
+		if (err) {
+			res.status(404).send(req.url + 'is invalid.');
+			console.log(err);
+			return;
+		}
+
+		total = stats.size;
+		console.log(total);
+		var range = req.headers.range;
+		console.log(range);
+		var position = range.replace(/bytes=/, '').split('-');
+		console.log(position);
+		var start = parseInt(position[0], 10);
+		var end = position[1] ? parseInt(position[1], 10) : total - 1;
+		var chunksize = (end - start) + 1;
+
+		res.writeHead(206, {
+			'Content-Range' : 'bytes ' + start + '-' + end + '/' + total,
+			'Accept-Ranges' : 'bytes',
+			'Content-Length' : chunksize,
+			'Content-Type' : 'video/webm'
+		});
+
+		var videostream = fs.createReadStream(file, {start : start, end : end});
+		videostream.on('open', () => {
+			//res.end(data.slice(start, end + 1), 'binary');
+			videostream.pipe(res);
+		});
+
+		videostream.on('error', err => {
+			res.end(err);
+		});
+	});
+})
+
 app.get('/download', (req, res) => {
 	res.render('download', {title: 'Download Image',
 		image_url: 'http://127.0.0.1:8081/public/image/CWT44201'});
